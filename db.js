@@ -1,179 +1,209 @@
+const { generateHash, comparePasswords } = require('./bcrypt');
 const Sequelize = require('sequelize');
-const conn = new Sequelize(process.env.DATABASE_URL || 'postgres://localhost/my_db', { logging: false });
+const conn = new Sequelize(
+  process.env.DATABASE_URL || 'postgres://localhost/my_db',
+  { logging: false }
+);
 
 const School = conn.define('school', {
   id: {
     type: Sequelize.UUID,
     primaryKey: true,
-    defaultValue: Sequelize.UUIDV4
+    defaultValue: Sequelize.UUIDV4,
   },
   name: {
     type: Sequelize.STRING,
     allowNull: false,
     validate: {
-      notEmpty: true
-    }
+      notEmpty: true,
+    },
   },
   imageURL: {
     type: Sequelize.STRING,
     allowNull: false,
-    defaultValue: 'https://www.fillmurray.com/200/300'
-  }
+    defaultValue: 'https://www.fillmurray.com/200/300',
+  },
 });
 
-const Student = conn.define('student', {
-  id: {
-    type: Sequelize.UUID,
-    primaryKey: true,
-    defaultValue: Sequelize.UUIDV4
+const Student = conn.define(
+  'student',
+  {
+    id: {
+      type: Sequelize.UUID,
+      primaryKey: true,
+      defaultValue: Sequelize.UUIDV4,
+    },
+    firstName: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+    },
+    lastName: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+    },
+    email: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      unique: true,
+      validate: {
+        notEmpty: true,
+      },
+    },
+    fullName: {
+      type: Sequelize.VIRTUAL,
+      get: function () {
+        return `${this.firstName} ${this.lastName}`;
+      },
+    },
+    GPA: {
+      type: Sequelize.FLOAT,
+      allowNull: false,
+      defaultValue: 2.0,
+      validate: {
+        notEmpty: true,
+      },
+    },
+    password: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: [3, 40],
+      },
+    },
   },
-  firstName: {
-    type: Sequelize.STRING,
-    allowNull: false,
-    validate: {
-      notEmpty: true
-    }
-  },
-  lastName: {
-    type: Sequelize.STRING,
-    allowNull: false,
-    validate: {
-      notEmpty: true
-    }
-  },
-  email: {
-    type: Sequelize.STRING,
-    allowNull: false,
-    unique: true,
-    validate: {
-      notEmpty: true
-    }
-  },
-  fullName: {
-    type: Sequelize.VIRTUAL,
-    get: function(){
-      return `${this.firstName} ${this.lastName}`;
-    }
-  },
-  GPA: {
-    type: Sequelize.FLOAT,
-    allowNull: false,
-    defaultValue: 2.0,
-    validate: {
-      notEmpty: true
-    }
+  {
+    hooks: {
+      beforeValidate: function (student) {
+        if (student.schoolId === '') {
+          student.schoolId = null;
+        }
+      },
+      beforeCreate: function (student) {
+        if (student.password.length < 41) {
+          return generateHash(student.password).then(hash => {
+            student.password = hash;
+          });
+        }
+      },
+    },
   }
-}, {
-  hooks: {
-    beforeValidate: function(student){
-      if(student.schoolId === ''){
-        student.schoolId = null;
-      }
-    }
-  }
-});
+);
 
 School.hasMany(Student);
 
-const syncAndSeed = async()=> {
+const syncAndSeed = async () => {
   await conn.sync({ force: true });
   const _schools = [
     {
       name: 'MIT',
-      imageURL: 'http://news.mit.edu/sites/mit.edu.newsoffice/files/styles/news_article_image_top_slideshow/public/images/2018/MIT-Computer-Announce-01_0.jpg?itok=nDI5_kh0'
-
+      imageURL:
+        'http://news.mit.edu/sites/mit.edu.newsoffice/files/styles/news_article_image_top_slideshow/public/images/2018/MIT-Computer-Announce-01_0.jpg?itok=nDI5_kh0',
     },
     {
       name: 'Harvard',
-      imageURL: 'https://www.bostonglobe.com/resizer/4PIipFYoNizWOUXlUEuEwPxpAbA=/960x0/arc-anglerfish-arc2-prod-bostonglobe.s3.amazonaws.com/public/7CBLSLWJTUI6RHP43HWZT7FW24.jpg'
+      imageURL:
+        'https://www.bostonglobe.com/resizer/4PIipFYoNizWOUXlUEuEwPxpAbA=/960x0/arc-anglerfish-arc2-prod-bostonglobe.s3.amazonaws.com/public/7CBLSLWJTUI6RHP43HWZT7FW24.jpg',
     },
     {
       name: 'UCLA',
-      imageURL: 'https://cdn.vox-cdn.com/thumbor/BItGWT7ZqQNwPCgGbMAvW79X6CM=/0x0:6115x4081/1820x1213/filters:focal(2569x1552:3547x2530):format(webp)/cdn.vox-cdn.com/uploads/chorus_image/image/57059063/shutterstock_560011798.0.jpg'
+      imageURL:
+        'https://cdn.vox-cdn.com/thumbor/BItGWT7ZqQNwPCgGbMAvW79X6CM=/0x0:6115x4081/1820x1213/filters:focal(2569x1552:3547x2530):format(webp)/cdn.vox-cdn.com/uploads/chorus_image/image/57059063/shutterstock_560011798.0.jpg',
     },
     {
       name: 'CCNY',
-      imageURL: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxGWTXN56Z617ji8D4QUgZ0H2k4Vx1PrazSGxtUX7DyQbfDXGd'
+      imageURL:
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxGWTXN56Z617ji8D4QUgZ0H2k4Vx1PrazSGxtUX7DyQbfDXGd',
     },
-    {
-      name: 'Brown'
-    },
-    {
-      name: 'Apex Tech',
-      imageURL: 'https://i.ytimg.com/vi/W-aPfjqcslo/hqdefault.jpg'
-    }
+    // {
+    //   name: 'CCNY',
+    // },
+    // {
+    //   name: 'MIT',
+    //   imageURL: 'https://i.ytimg.com/vi/W-aPfjqcslo/hqdefault.jpg',
+    // },
   ];
   const _students = [
     {
       firstName: 'Moe',
       lastName: 'Jones',
-      email: 'moe@gmail.com'
+      email: 'moe@gmail.com',
+      password: '123',
     },
     {
       firstName: 'Larry',
       lastName: 'Smith',
-      email: 'larry@gmail.com'
+      email: 'larry@gmail.com',
+      password: '234',
     },
     {
       firstName: 'Curly',
       lastName: 'Adams',
-      email: 'curly@gmail.com'
+      email: 'curly@gmail.com',
+      password: '234',
     },
     {
       firstName: 'Shep',
       lastName: 'Riley',
       email: 'shep@gmail.com',
-      GPA: 4.0
+      GPA: 4.0,
+      password: '234',
     },
     {
       firstName: 'Ethel',
       lastName: 'Merman',
-      email: 'ethel@aol.com'
+      email: 'ethel@aol.com',
+      password: '234',
     },
     {
       firstName: 'Lucy',
       lastName: 'Ball',
-      email: 'lucy@gmail.com'
+      email: 'lucy@gmail.com',
+      password: '234',
     },
-    {
-      firstName: 'Red',
-      lastName: 'Foxx',
-      email: 'red@gmail.com'
-    },
-    {
-      firstName: 'Gracie',
-      lastName: 'Allen',
-      email: 'gracie@gmail.com'
-    },
-    {
-      firstName: 'Carol',
-      lastName: 'Burnett',
-      email: 'carol@gmail.com',
-      GPA: 3
-    },
-    {
-      firstName: 'Moms',
-      lastName: 'Mabley',
-      email: 'moms@gmail.com',
-      GPA: 3.5 
-    }
-
+    // {
+    //   firstName: 'Red',
+    //   lastName: 'Foxx',
+    //   email: 'red@gmail.com',
+    // },
+    // {
+    //   firstName: 'Gracie',
+    //   lastName: 'Allen',
+    //   email: 'gracie@gmail.com',
+    // },
+    // {
+    //   firstName: 'Carol',
+    //   lastName: 'Burnett',
+    //   email: 'carol@gmail.com',
+    //   GPA: 3,
+    // },
+    // {
+    //   firstName: 'Moms',
+    //   lastName: 'Mabley',
+    //   email: 'moms@gmail.com',
+    //   GPA: 3.5,
+    // },
   ];
   const [schools, students] = await Promise.all([
-    Promise.all(_schools.map( school => School.create(school))),
-    Promise.all(_students.map( student => Student.create(student))),
+    Promise.all(_schools.map(school => School.create(school))),
+    Promise.all(_students.map(student => Student.create(student))),
   ]);
 
-
-  const mapped =  {
-    schools : schools.reduce((acc, school)=> { 
-      acc[school.name] = school
+  const mapped = {
+    schools: schools.reduce((acc, school) => {
+      acc[school.name] = school;
       return acc;
     }, {}),
-    students : students.reduce((acc, student)=> {
+    students: students.reduce((acc, student) => {
       acc[student.email] = student;
-      return acc
-    }, {})
+      return acc;
+    }, {}),
   };
   const { Harvard, MIT, UCLA, CCNY } = mapped.schools;
 
@@ -184,24 +214,22 @@ const syncAndSeed = async()=> {
       mapped.students['red@gmail.com'],
       mapped.students['moms@gmail.com'],
     ]),
-    MIT.setStudents([
-      mapped.students['ethel@aol.com'],
-    ]),
+    MIT.setStudents([mapped.students['ethel@aol.com']]),
     CCNY.setStudents([
       mapped.students['shep@gmail.com'],
       mapped.students['carol@gmail.com'],
-    ])
+    ]),
   ]);
 
   return {
-    schools : (await School.findAll()).reduce((acc, school)=> { 
-      acc[school.name] = school
+    schools: (await School.findAll()).reduce((acc, school) => {
+      acc[school.name] = school;
       return acc;
     }, {}),
-    students : (await Student.findAll()).reduce((acc, student)=> {
+    students: (await Student.findAll()).reduce((acc, student) => {
       acc[student.email] = student;
-      return acc
-    }, {})
+      return acc;
+    }, {}),
   };
 };
 
@@ -210,6 +238,6 @@ module.exports = {
   conn,
   models: {
     School,
-    Student
-  }
+    Student,
+  },
 };

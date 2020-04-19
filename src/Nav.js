@@ -12,36 +12,58 @@ const { Provider, connect } = ReactRedux;
 const { Component } = React;
 import store, { loadData } from './store';
 import { topSchool, mostPopular } from './utils';
+import NavLogin from './NavLogin';
 
-const _Nav = ({ schools, students, mostPopular, topSchool, location: {pathname}, match })=> {
+const _Nav = ({
+  schools,
+  students,
+  mostPopular,
+  topSchool,
+  location: { pathname },
+  match,
+}) => {
   return (
     <header>
-      <Link to='/'>Acme Schools</Link>
+      <Link to="/">Acme Schools</Link>
       <nav>
-        <Link to='/schools' className={ pathname.startsWith('/schools') ? 'selected': ''}>Schools ({ schools.length })</Link>
-        <Link to='/students' className={ pathname.startsWith('/students') ? 'selected': ''}>Students ({ students.length })</Link>
-        {
-          !!mostPopular.id && (
-        <Link to={`/schools/${mostPopular.id}`} className={ pathname.endsWith(mostPopular.id) ? 'selected': ''}>Most Popular { mostPopular.name } ({ mostPopular.enrollment })</Link>
-
-          )
-        }
-        {
-          !!topSchool.id && (
-        <Link to={`/schools/${topSchool.id}`} className={ pathname.endsWith(topSchool.id) ? 'selected': ''}>Top School { topSchool.name } ({ topSchool.name })</Link>
-
-          )
-        }
+        <Link
+          to="/schools"
+          className={pathname.startsWith('/schools') ? 'selected' : ''}
+        >
+          Schools ({schools.length})
+        </Link>
+        <Link
+          to="/students"
+          className={pathname.startsWith('/students') ? 'selected' : ''}
+        >
+          Students ({students.length})
+        </Link>
+        {!!mostPopular.id && (
+          <Link
+            to={`/schools/${mostPopular.id}`}
+            className={pathname.endsWith(mostPopular.id) ? 'selected' : ''}
+          >
+            Most Popular {mostPopular.name} ({mostPopular.enrollment})
+          </Link>
+        )}
+        {!!topSchool.id && (
+          <Link
+            to={`/schools/${topSchool.id}`}
+            className={pathname.endsWith(topSchool.id) ? 'selected' : ''}
+          >
+            Top School {topSchool.name} ({topSchool.name})
+          </Link>
+        )}
+        <NavLogin />
       </nav>
     </header>
   );
 };
 
-export default connect((state)=> {
+export default connect(state => {
   return {
     ...state,
     mostPopular: mostPopular(state),
-    topSchool: topSchool(state)
-
-  }
+    topSchool: topSchool(state),
+  };
 })(_Nav);

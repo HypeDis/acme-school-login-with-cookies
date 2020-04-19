@@ -1,0 +1,19 @@
+# api queries, need to install the REST client extension in vscode to use
+
+@apiRoute = http://localhost:3000/api
+POST {{apiRoute}}/auth
+Content-Type: application/json
+
+{"email": "moe@gmail.com",
+"password": "123"}
+
+###
+GET {{apiRoute}}/auth
+Accept: application/json
+
+
+###
+DELETE {{apiRoute}}/auth
+
+### 
+GET {{apiRoute}}/auth/test

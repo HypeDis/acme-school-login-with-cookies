@@ -1,2 +1,4 @@
 node_modules
 dist
+# --ignore this file for real projects
+#.env

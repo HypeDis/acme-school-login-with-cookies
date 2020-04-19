@@ -39,15 +39,15 @@ header a.selected {
   margin: 1.5rem;
 }
 
-.tiles{
+.tiles {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
 }
-.tiles > div{
+.tiles > div {
   margin: 1rem;
   width: calc(33% - 2rem);
-  display:flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
   border: solid 1px black;
@@ -55,10 +55,10 @@ header a.selected {
 }
 
 .unenrolled {
-  background-color: #EFEFEF;
+  background-color: #efefef;
 }
 
-.school-logo{
+.school-logo {
   height: 5rem;
   width: 100%;
   background-position: center;
@@ -74,9 +74,10 @@ form > div {
   margin: 0.25rem 0;
 }
 
-select, button {
+select,
+button {
   margin-bottom: 0.25rem;
-  font-size: 1.0rem;
+  font-size: 1rem;
 }
 
 label {
@@ -95,11 +96,20 @@ button.destroy {
   color: white;
 }
 
-@media (max-width:600px){
+.login__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login__form > * {
+  margin-bottom: 0.5rem;
+}
+@media (max-width: 600px) {
   .tiles > div {
     margin: 1rem;
     width: calc(100% - 2rem);
-    display:flex;
+    display: flex;
     flex-direction: column;
     align-items: center;
   }
@@ -110,4 +120,3 @@ button.destroy {
     flex-direction: column;
   }
 }
-
